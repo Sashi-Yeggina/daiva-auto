@@ -32,14 +32,14 @@ export default function Layout() {
       <aside className={`hidden md:flex flex-col w-56 bg-brand-card border-r border-brand-border shrink-0`}>
         {/* Logo */}
         <div className="p-4 border-b border-brand-border">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <img
               src="/assets/logo-dark.png"
               alt="Logo"
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
             />
-            <div>
+            <div className="min-w-0">
               <p className="text-brand-orange font-extrabold text-sm tracking-widest uppercase">DAIVA</p>
               <p className="text-brand-muted text-xs">Automobiles</p>
             </div>
@@ -123,12 +123,18 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-brand-card border-b border-brand-border shrink-0">
-          <button onClick={() => setSidebarOpen(true)}>
+        <header className="md:hidden flex items-center justify-between px-3 py-2 bg-brand-card border-b border-brand-border shrink-0 gap-2">
+          <button onClick={() => setSidebarOpen(true)} className="shrink-0">
             <Menu size={22} className="text-brand-muted" />
           </button>
-          <p className="text-brand-orange font-extrabold tracking-widest text-sm uppercase">DAIVA AUTOMOBILES</p>
-          <div className="flex items-center gap-1">
+          <img
+            src="/assets/logo-dark.png"
+            alt="Logo"
+            className="w-8 h-8 object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+          <p className="text-brand-orange font-extrabold tracking-widest text-xs uppercase flex-1 truncate">DAIVA</p>
+          <div className="flex items-center gap-1 shrink-0">
             {online
               ? <div className="w-2 h-2 rounded-full bg-green-500" />
               : <div className="w-2 h-2 rounded-full bg-red-500" />

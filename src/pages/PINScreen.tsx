@@ -52,27 +52,27 @@ export default function PINScreen() {
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del']
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center px-4 py-8">
       {/* Logo / Shop Name */}
-      <div className="mb-10 text-center">
-        <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+      <div className="text-center mb-5">
+        <div className="w-64 h-64 mx-auto mb-1 flex items-center justify-center">
           <img
             src="/assets/logo-dark.png"
             alt="Daiva Automobiles"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain drop-shadow-xl"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none'
             }}
           />
         </div>
-        <h1 className="text-3xl font-extrabold text-brand-orange tracking-widest uppercase">
-          DAIVA
-        </h1>
-        <p className="text-brand-muted text-sm mt-1">Automobiles · Buttayagudem</p>
+        <p className="text-brand-muted text-sm">Buttayagudem</p>
       </div>
 
+      {/* Spacing */}
+      <div className="mb-6"></div>
+
       {/* PIN dots */}
-      <div className={`flex gap-4 mb-8 ${shake ? 'shake' : ''}`}>
+      <div className={`flex gap-4 mb-6 justify-center ${shake ? 'shake' : ''}`}>
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
@@ -86,7 +86,7 @@ export default function PINScreen() {
       </div>
 
       {/* PIN Pad */}
-      <div className="grid grid-cols-3 gap-3 w-64">
+      <div className="grid grid-cols-3 gap-3 w-64 mx-auto mb-6">
         {keys.map((key, idx) => {
           if (key === '') return <div key={idx} />
           if (key === 'del') {
@@ -112,7 +112,7 @@ export default function PINScreen() {
         })}
       </div>
 
-      <p className="mt-8 text-brand-muted text-xs">
+      <p className="text-brand-muted text-xs">
         Enter 4-digit PIN to continue
       </p>
     </div>
