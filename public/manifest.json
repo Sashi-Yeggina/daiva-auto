@@ -1,0 +1,22 @@
+{
+  "name": "Daiva Automobiles",
+  "short_name": "Daiva Auto",
+  "description": "POS & Store Management for Daiva Automobiles",
+  "theme_color": "#E85000",
+  "background_color": "#0D0D0D",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/assets/logo-white.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo-white.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
