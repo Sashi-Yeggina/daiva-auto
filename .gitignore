@@ -23,3 +23,6 @@ dist-ssr
 # Environment files
 .env.local
 .env.production
+
+# Notes
+*.DEPLOY_STEPS.md

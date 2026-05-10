@@ -12,6 +12,7 @@
    - Region: **Southeast Asia (Singapore)** ← closest to India
    - Set a password and save it
 3. Wait ~2 minutes for the project to start
+   - PWD: 8ix9JKehYDHH45ZY
 4. Go to **SQL Editor** (left sidebar)
 5. Open the file `src/lib/schema.sql` from this folder
 6. Copy the entire contents → paste into SQL Editor → click **Run**
@@ -20,6 +21,12 @@
    - **Project URL** (e.g. https://xxxx.supabase.co)
    - **anon public key** (long string starting with eyJ...)
 
+Project URL
+**https://jxkzsoodewkwdeasnknv.supabase.co**
+Anon Public Key
+**eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4a3pzb29kZXdrd2RlYXNua252Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MzM3OTYsImV4cCI6MjA5NDAwOTc5Nn0.3oJon-XrS5S-TWJLM4yXibCzj1MENzEILDJDAEnsLUc**
+or
+**sb_publishable_2x7j2VybJmKo_sOW8GARTA_c4tUIQ-t**
 ---
 
 ## STEP 2 — Add logo images (2 minutes)
