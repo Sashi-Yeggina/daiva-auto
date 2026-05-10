@@ -45,6 +45,7 @@ export default function POS() {
   const [completing, setCompleting] = useState(false)
   const [lastBill, setLastBill] = useState<{ billId: string; saleId: string } | null>(null)
   const [showBill, setShowBill] = useState(false)
+  const [manualCommission, setManualCommission] = useState<number>(0)
 
   // Load mechanics + settings
   useEffect(() => {
@@ -186,13 +187,15 @@ export default function POS() {
 
       // Mechanic commission
       if (mechanicId && selectedMechanic) {
-        const commissionAmount = grandTotal * (selectedMechanic.commission_percent / 100)
+        // Use manual commission if entered, otherwise use default percentage
+        const commissionAmount = manualCommission > 0 ? manualCommission : grandTotal * (selectedMechanic.commission_percent / 100)
+        const commissionPercent = (commissionAmount / grandTotal) * 100
         await supabase.from('mechanic_ledger').insert({
           mechanic_id: mechanicId,
           sale_id: saleId,
           bill_id: billId,
           grand_total: grandTotal,
-          commission_percent: selectedMechanic.commission_percent,
+          commission_percent: commissionPercent,
           commission_amount: commissionAmount,
           payment_status: 'Unpaid',
           payment_month: new Date().toISOString().slice(0, 7),
@@ -221,6 +224,7 @@ export default function POS() {
     setSaleSource('Walk-in')
     setTaxReceipt(false)
     setPayment('Cash')
+    setManualCommission(0)
   }
 
   const upiLink = lastBill ? generateUPILink({ merchantUPI, amount: grandTotal, billId: lastBill.billId, shopName }) : ''
@@ -364,6 +368,29 @@ export default function POS() {
               </div>
             )}
 
+            {/* Mechanic Commission (if mechanic selected) */}
+            {mechanicId && selectedMechanic && (
+              <div className="bg-brand-card border border-brand-border/50 rounded-lg p-3 space-y-2">
+                <label className="text-xs text-brand-muted block">Mechanic Commission</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={manualCommission || ''}
+                    onChange={e => setManualCommission(e.target.value ? Number(e.target.value) : 0)}
+                    placeholder="0"
+                    className="flex-1 pos-input"
+                  />
+                  <span className="text-xs text-brand-muted py-2 px-2">₹</span>
+                </div>
+                <div className="text-xs text-brand-muted space-y-1">
+                  <p>Default: {selectedMechanic.commission_percent}% = {formatCurrency(grandTotal * (selectedMechanic.commission_percent / 100))}</p>
+                  {manualCommission > 0 && (
+                    <p className="text-brand-orange">Custom: {formatCurrency(manualCommission)} ({((manualCommission / grandTotal) * 100).toFixed(1)}% of bill)</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tax Receipt Toggle */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-brand-muted">Tax Receipt (GST 18%)</span>
@@ -411,8 +438,14 @@ export default function POS() {
 
             {payment === 'Cash' && (
               <div>
-                <label className="text-xs text-brand-muted block mb-1">Cash Received</label>
-                <input type="number" value={cashReceived} onChange={e => setCashReceived(Number(e.target.value))} className="pos-input w-full" />
+                <label className="text-xs text-brand-muted block mb-1">Cash Received (₹)</label>
+                <input
+                  type="number"
+                  value={cashReceived || ''}
+                  onChange={e => setCashReceived(e.target.value ? Number(e.target.value) : 0)}
+                  placeholder="0"
+                  className="pos-input w-full"
+                />
                 {cashReceived >= grandTotal && (
                   <p className="text-xs text-green-400 mt-1">Change: {formatCurrency(cashReceived - grandTotal)}</p>
                 )}

@@ -25,4 +25,4 @@ dist-ssr
 .env.production
 
 # Notes
-*.DEPLOY_STEPS.md
+DEPLOY_STEPS.md
