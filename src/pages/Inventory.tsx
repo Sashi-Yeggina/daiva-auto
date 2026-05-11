@@ -20,6 +20,8 @@ export default function Inventory() {
   const [addStockQty, setAddStockQty] = useState<number>(0)
   const [partNameInput, setPartNameInput] = useState('')
   const [partSuggestions, setPartSuggestions] = useState<InventoryItem[]>([])
+  const [categoryInput, setCategoryInput] = useState('')
+  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
@@ -53,6 +55,8 @@ export default function Inventory() {
     setEditItem(null)
     setPartNameInput('')
     setPartSuggestions([])
+    setCategoryInput('')
+    setCategorySuggestions([])
     setShowModal(true)
   }
 
@@ -61,6 +65,8 @@ export default function Inventory() {
     setEditItem(item)
     setPartNameInput(item.part_name)
     setPartSuggestions([])
+    setCategoryInput(item.category || '')
+    setCategorySuggestions([])
     setShowModal(true)
   }
 
@@ -261,9 +267,52 @@ export default function Inventory() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-brand-muted mb-1 block">Category</label>
-                  <input {...register('category')} className="form-input" placeholder="e.g. Brakes, Engine" />
+                <div className="relative">
+                  <label className="text-xs text-brand-muted mb-1 block">Category {categorySuggestions.length > 0 && <span className="text-brand-orange text-xs">(click to select)</span>}</label>
+                  <input
+                    {...register('category')}
+                    value={categoryInput}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setCategoryInput(val)
+                      // Update the form field value
+                      const event = { target: { name: 'category', value: val } }
+                      register('category').onChange?.(event as any)
+                      // Find suggestions
+                      if (val.trim().length > 0) {
+                        const uniqueCategories = [...new Set(items
+                          .filter(item => item.category && item.category.toLowerCase().includes(val.toLowerCase()))
+                          .map(item => item.category)
+                        )] as string[]
+                        setCategorySuggestions(uniqueCategories)
+                      } else {
+                        setCategorySuggestions([])
+                      }
+                    }}
+                    placeholder="e.g. Brakes, Engine, Oils"
+                    className="form-input w-full"
+                    list="categories-list"
+                  />
+                  {categorySuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-brand-card border border-brand-border rounded-lg shadow-lg z-10 max-h-32 overflow-y-auto">
+                      {categorySuggestions.map((cat, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setCategoryInput(cat)
+                            setCategorySuggestions([])
+                            // Update form field
+                            const event = { target: { name: 'category', value: cat } }
+                            register('category').onChange?.(event as any)
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-brand-bg border-t border-brand-border/50 text-sm text-white first:border-t-0 transition-colors"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs text-brand-muted mb-1 block">Bike Model * <span className="text-brand-orange text-xs">(or type new)</span></label>
