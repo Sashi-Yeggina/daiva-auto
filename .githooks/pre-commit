@@ -1,0 +1,26 @@
+#!/bin/zsh
+set -euo pipefail
+
+GIT_DIR=$(git rev-parse --git-dir)
+
+# Find lock files commonly left stale after interrupted git operations
+lock_files=$(find "$GIT_DIR" -maxdepth 2 -type f -name '*.lock' 2>/dev/null || true)
+
+if [[ -z "$lock_files" ]]; then
+  exit 0
+fi
+
+# If a real git process is active, do not touch locks
+if pgrep -x git >/dev/null; then
+  echo "[pre-commit] Active git process detected; not removing lock files."
+  echo "[pre-commit] Finish/close active git process and retry."
+  exit 1
+fi
+
+echo "[pre-commit] Removing stale git lock files:"
+echo "$lock_files"
+while IFS= read -r f; do
+  [[ -n "$f" ]] && rm -f "$f"
+done <<< "$lock_files"
+
+echo "[pre-commit] Stale lock cleanup complete."
