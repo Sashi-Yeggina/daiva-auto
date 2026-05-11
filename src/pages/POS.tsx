@@ -249,13 +249,13 @@ export default function POS() {
 
           {/* Search */}
           <div className="relative">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search parts by name or barcode..."
-              className="pos-input pl-11 pr-4 w-full"
+              className="pos-input pl-4 pr-12 w-full"
             />
+            <Search size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
           </div>
           <select value={bikeFilter} onChange={e => setBikeFilter(e.target.value)} className="pos-input w-full">
             <option value="All">All Bikes</option>
