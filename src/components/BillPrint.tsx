@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase, Sale, CartItem } from '../lib/supabase'
+import { supabase, Sale, CartItem, Customer } from '../lib/supabase'
 import { formatCurrency, formatDate } from '../lib/constants'
 import QRCode from 'qrcode'
 import { generateUPILink } from '../lib/upi'
@@ -14,10 +14,22 @@ interface BillPrintProps {
 export default function BillPrint({ saleId, billId, merchantUPI, shopName }: BillPrintProps) {
   const [sale, setSale] = useState<Sale | null>(null)
   const [items, setItems] = useState<CartItem[]>([])
+  const [customer, setCustomer] = useState<Customer | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState('')
 
   useEffect(() => {
-    supabase.from('sales').select('*').eq('sale_id', saleId).single().then(({ data }) => setSale(data))
+    const fetchSaleData = async () => {
+      const { data: saleData } = await supabase.from('sales').select('*').eq('sale_id', saleId).single()
+      setSale(saleData)
+
+      // Fetch customer if customer_id exists
+      if (saleData?.customer_id) {
+        const { data: customerData } = await supabase.from('customers').select('*').eq('customer_id', saleData.customer_id).single()
+        setCustomer(customerData || null)
+      }
+    }
+
+    fetchSaleData()
     supabase.from('cart_items').select('*').eq('sale_id', saleId).then(({ data }) => setItems(data || []))
   }, [saleId])
 
@@ -56,6 +68,17 @@ export default function BillPrint({ saleId, billId, merchantUPI, shopName }: Bil
           <p><span className="font-medium">Payment:</span> {sale.payment_type}</p>
         </div>
       </div>
+
+      {/* Customer Info */}
+      {customer && (
+        <div className="border-l-4 border-blue-500 bg-blue-50 p-3 mb-4 text-xs">
+          <p className="font-medium text-gray-800">Customer Details</p>
+          <p className="text-gray-700"><span className="font-medium">Name:</span> {customer.name}</p>
+          {customer.phone && <p className="text-gray-700"><span className="font-medium">Phone:</span> {customer.phone}</p>}
+          {customer.vehicle_number && <p className="text-gray-700"><span className="font-medium">Vehicle #:</span> {customer.vehicle_number}</p>}
+          {customer.bike_model && <p className="text-gray-700"><span className="font-medium">Bike:</span> {customer.bike_model}</p>}
+        </div>
+      )}
 
       {/* Items */}
       <table className="w-full text-xs mb-4">
