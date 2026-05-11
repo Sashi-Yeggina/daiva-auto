@@ -15,6 +15,7 @@ export default function Inventory() {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState<InventoryItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [bikeModels, setBikeModels] = useState<string[]>(BIKE_MODELS)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
@@ -199,11 +200,18 @@ export default function Inventory() {
                   <input {...register('category')} className="form-input" placeholder="e.g. Brakes, Engine" />
                 </div>
                 <div>
-                  <label className="text-xs text-brand-muted mb-1 block">Bike Model *</label>
-                  <select {...register('bike_model')} className="form-input">
-                    <option value="">Select...</option>
-                    {BIKE_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                  <label className="text-xs text-brand-muted mb-1 block">Bike Model * <span className="text-brand-orange text-xs">(or type new)</span></label>
+                  <input
+                    type="text"
+                    {...register('bike_model', { required: true })}
+                    placeholder="Select from list or type new model"
+                    list="bike-models-list"
+                    className={`form-input ${errors.bike_model ? 'border-red-500' : ''}`}
+                  />
+                  <datalist id="bike-models-list">
+                    {bikeModels.map(m => <option key={m} value={m} />)}
+                  </datalist>
+                  <p className="text-xs text-brand-muted mt-1">Start typing to search or add new</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
