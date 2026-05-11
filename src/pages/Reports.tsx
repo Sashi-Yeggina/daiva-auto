@@ -785,7 +785,7 @@ export default function Reports() {
                 </thead>
                 <tbody>
                   {lowStockItems.map(item => (
-                    <tr key={item.inventory_id} className="border-b border-brand-border/50 hover:bg-brand-bg/50">
+                    <tr key={item.item_id} className="border-b border-brand-border/50 hover:bg-brand-bg/50">
                       <td className="py-3 px-3 text-brand-text font-medium">
                         {item.part_name}
                         <p className="text-xs text-brand-text-secondary">{item.bike_model}</p>

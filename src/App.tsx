@@ -11,7 +11,6 @@ import Expenses from './pages/Expenses'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import { isAuthenticated } from './lib/auth'
-import ReportsComplete from './pages/ReportsComplete'
 
 const queryClient = new QueryClient({
   defaultOptions: {
