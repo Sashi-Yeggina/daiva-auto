@@ -18,6 +18,8 @@ export default function Inventory() {
   const [bikeModels, setBikeModels] = useState<string[]>(BIKE_MODELS)
   const [addStockItem, setAddStockItem] = useState<InventoryItem | null>(null)
   const [addStockQty, setAddStockQty] = useState<number>(0)
+  const [partNameInput, setPartNameInput] = useState('')
+  const [partSuggestions, setPartSuggestions] = useState<InventoryItem[]>([])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
@@ -49,12 +51,16 @@ export default function Inventory() {
   const openAdd = () => {
     reset({ barcode: '', part_name: '', category: '', bike_model: '', cost_a: 0, cost_b: 0, gst_percent: 18, stock: 0, reorder_level: 5 })
     setEditItem(null)
+    setPartNameInput('')
+    setPartSuggestions([])
     setShowModal(true)
   }
 
   const openEdit = (item: InventoryItem) => {
     reset(item)
     setEditItem(item)
+    setPartNameInput(item.part_name)
+    setPartSuggestions([])
     setShowModal(true)
   }
 
@@ -206,9 +212,52 @@ export default function Inventory() {
                   <label className="text-xs text-brand-muted mb-1 block">Barcode</label>
                   <input {...register('barcode')} className="form-input" placeholder="Scan or type" />
                 </div>
-                <div>
-                  <label className="text-xs text-brand-muted mb-1 block">Part Name *</label>
-                  <input {...register('part_name', { required: true })} className={`form-input ${errors.part_name ? 'border-red-500' : ''}`} />
+                <div className="relative">
+                  <label className="text-xs text-brand-muted mb-1 block">Part Name * {partSuggestions.length > 0 && <span className="text-brand-orange text-xs">(click to select existing)</span>}</label>
+                  <input
+                    {...register('part_name', { required: true })}
+                    value={partNameInput}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setPartNameInput(val)
+                      // Update the form field value
+                      const event = { target: { name: 'part_name', value: val } }
+                      register('part_name').onChange?.(event as any)
+                      // Find suggestions
+                      if (val.trim().length > 0) {
+                        const matches = items.filter(item =>
+                          item.part_name.toLowerCase().includes(val.toLowerCase())
+                        )
+                        setPartSuggestions(matches)
+                      } else {
+                        setPartSuggestions([])
+                      }
+                    }}
+                    placeholder="e.g. Brake Pad, Air Filter"
+                    className={`form-input w-full ${errors.part_name ? 'border-red-500' : ''}`}
+                    list="part-names-list"
+                  />
+                  {partSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-brand-card border border-brand-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {partSuggestions.map(part => (
+                        <button
+                          key={part.item_id}
+                          type="button"
+                          onClick={() => {
+                            setPartNameInput(part.part_name)
+                            setPartSuggestions([])
+                            // Update form field
+                            reset({...part, part_name: part.part_name})
+                            toast.success(`Auto-filled from ${part.part_name}`)
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-brand-bg border-t border-brand-border/50 text-sm text-white first:border-t-0 transition-colors"
+                        >
+                          <p className="font-medium">{part.part_name}</p>
+                          <p className="text-xs text-brand-muted">{part.bike_model || 'All'} • ₹{part.cost_b}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
