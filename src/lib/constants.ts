@@ -44,13 +44,21 @@ export const FEATURES = {
   UPI_COLLECT: false,
 }
 
-export function generateBillId(): string {
+export function generateBillId(source: string = 'Walk-in'): string {
+  // Source prefix: W=Walk-in, M=Mechanic, O=Online, X=Other
+  const sourcePrefix = {
+    'Walk-in': 'W',
+    'Mechanic': 'M',
+    'Online': 'O',
+    'Other': 'X',
+  }[source] || 'X'
+
   const now = new Date()
   const yy = String(now.getFullYear()).slice(2)
   const mm = String(now.getMonth() + 1).padStart(2, '0')
   const dd = String(now.getDate()).padStart(2, '0')
   const rand = Math.random().toString(36).substring(2, 6).toUpperCase()
-  return `INV-${yy}${mm}${dd}-${rand}`
+  return `${sourcePrefix}-${yy}${mm}${dd}-${rand}`
 }
 
 export function formatCurrency(amount: number): string {

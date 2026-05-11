@@ -31,7 +31,6 @@ export default function POS() {
   const [bikeFilter, setBikeFilter] = useState('All')
   const [results, setResults] = useState<InventoryItem[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
-  const [saleSource, setSaleSource] = useState<string>('Walk-in')
   const [mechanics, setMechanics] = useState<Mechanic[]>([])
   const [mechanicId, setMechanicId] = useState<string>('')
   const [discount, setDiscount] = useState<number>(0)
@@ -50,6 +49,7 @@ export default function POS() {
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [showCustomerForm, setShowCustomerForm] = useState(false)
+  const [billSource, setBillSource] = useState<'Walk-in' | 'Mechanic' | 'Online' | 'Other'>('Walk-in')
 
   // Load mechanics + settings
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function POS() {
     if (cart.length === 0) { toast.error('Cart is empty'); return }
     setCompleting(true)
     try {
-      const billId = generateBillId()
+      const billId = generateBillId(billSource)
       const paidAmount = payment === 'Cash' ? cashReceived : payment === 'Partial' ? partialPaid : grandTotal
       const balanceDue = Math.max(0, grandTotal - paidAmount)
 
@@ -148,7 +148,7 @@ export default function POS() {
       const { data: saleData, error: saleError } = await supabase.from('sales').insert({
         bill_id: billId,
         sale_date: new Date().toISOString(),
-        sale_source: saleSource,
+        sale_source: billSource,
         mechanic_id: mechanicId || null,
         customer_id: customerId,
         subtotal,
@@ -241,7 +241,7 @@ export default function POS() {
     setCashReceived(0)
     setPartialPaid(0)
     setMechanicId('')
-    setSaleSource('Walk-in')
+    setBillSource('Walk-in')
     setTaxReceipt(false)
     setPayment('Cash')
     setManualCommission(0)
@@ -258,18 +258,33 @@ export default function POS() {
       {/* LEFT — Search */}
       <div className="md:w-1/2 border-r border-brand-border flex flex-col">
         <div className="p-4 border-b border-brand-border space-y-3">
-          {/* Sale Source + Mechanic */}
-          <div className="flex gap-2">
-            <select value={saleSource} onChange={e => setSaleSource(e.target.value)} className="pos-input flex-1">
-              {['Walk-in', 'Mechanic', 'Online', 'Other'].map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {saleSource === 'Mechanic' && (
-              <select value={mechanicId} onChange={e => setMechanicId(e.target.value)} className="pos-input flex-1">
-                <option value="">No mechanic</option>
+          {/* Mechanic Selection (only when explicitly linking) */}
+          {mechanicId && (
+            <div className="bg-brand-orange/10 border border-brand-orange/30 rounded p-2 text-xs">
+              <p className="text-brand-muted mb-1">💼 Mechanic Linked</p>
+              <select value={mechanicId} onChange={e => setMechanicId(e.target.value)} className="pos-input w-full text-sm">
+                <option value="">Remove mechanic</option>
                 {mechanics.map(m => <option key={m.mechanic_id} value={m.mechanic_id}>{m.name} ({m.commission_percent}%)</option>)}
               </select>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Mechanic Selection (add mechanic) */}
+          {!mechanicId && (
+            <button
+              onClick={() => {
+                const mechName = prompt('Search mechanic name or type to select:')
+                if (mechName) {
+                  const mech = mechanics.find(m => m.name.toLowerCase().includes(mechName.toLowerCase()))
+                  if (mech) setMechanicId(mech.mechanic_id)
+                  else alert('Mechanic not found')
+                }
+              }}
+              className="w-full py-2 px-3 rounded border border-brand-border text-xs text-brand-muted hover:bg-brand-border transition-all"
+            >
+              + Link Mechanic (Optional)
+            </button>
+          )}
 
           {/* Search */}
           <div className="relative">
@@ -545,6 +560,30 @@ export default function POS() {
                 <p className="text-xs text-yellow-400 mt-1">Due: {formatCurrency(Math.max(0, grandTotal - partialPaid))}</p>
               </div>
             )}
+
+            {/* Sale Source Selection */}
+            <div className="bg-brand-card border border-brand-border/50 rounded-lg p-3 space-y-2">
+              <label className="text-xs text-brand-muted block font-medium">Sale Source (for invoice tracking)</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['Walk-in', 'Mechanic', 'Online', 'Other'] as const).map(source => (
+                  <button
+                    key={source}
+                    onClick={() => setBillSource(source)}
+                    className={`py-2 px-2 rounded text-xs font-medium transition-all ${
+                      billSource === source
+                        ? 'bg-brand-orange text-white'
+                        : 'bg-brand-border text-brand-muted hover:bg-brand-border/80'
+                    }`}
+                  >
+                    {source === 'Walk-in' && '👤 Walk-in'}
+                    {source === 'Mechanic' && '🔧 Mechanic'}
+                    {source === 'Online' && '📱 Online'}
+                    {source === 'Other' && '📌 Other'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-brand-muted/70">Invoice will be: {billSource.charAt(0)}-YYMMDD-XXXX</p>
+            </div>
 
             {/* Complete Sale */}
             <button
