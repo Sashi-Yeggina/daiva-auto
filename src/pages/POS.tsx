@@ -46,6 +46,10 @@ export default function POS() {
   const [lastBill, setLastBill] = useState<{ billId: string; saleId: string } | null>(null)
   const [showBill, setShowBill] = useState(false)
   const [manualCommission, setManualCommission] = useState<number>(0)
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [showCustomerForm, setShowCustomerForm] = useState(false)
 
   // Load mechanics + settings
   useEffect(() => {
@@ -125,12 +129,28 @@ export default function POS() {
       const paidAmount = payment === 'Cash' ? cashReceived : payment === 'Partial' ? partialPaid : grandTotal
       const balanceDue = Math.max(0, grandTotal - paidAmount)
 
+      // Handle customer (create if provided, otherwise null)
+      let customerId: string | null = null
+      if (customerName || customerPhone || customerEmail) {
+        const { data: customerData, error: customerError } = await supabase.from('customers').insert({
+          name: customerName || 'Unknown',
+          phone: customerPhone || null,
+          vehicle_number: null,
+          bike_model: null,
+          year: null,
+          address: null,
+        }).select().single()
+        if (customerError) toast.error('Could not save customer')
+        else customerId = customerData.customer_id
+      }
+
       // Insert sale
       const { data: saleData, error: saleError } = await supabase.from('sales').insert({
         bill_id: billId,
         sale_date: new Date().toISOString(),
         sale_source: saleSource,
         mechanic_id: mechanicId || null,
+        customer_id: customerId,
         subtotal,
         discount: effectiveDiscount,
         gst_amount: gstAmount,
@@ -225,6 +245,10 @@ export default function POS() {
     setTaxReceipt(false)
     setPayment('Cash')
     setManualCommission(0)
+    setCustomerName('')
+    setCustomerPhone('')
+    setCustomerEmail('')
+    setShowCustomerForm(false)
   }
 
   const upiLink = lastBill ? generateUPILink({ merchantUPI, amount: grandTotal, billId: lastBill.billId, shopName }) : ''
@@ -424,6 +448,51 @@ export default function POS() {
                 <span>Total</span>
                 <span className="text-brand-orange">{formatCurrency(grandTotal)}</span>
               </div>
+            </div>
+
+            {/* Customer Information (Optional) */}
+            <div className="bg-brand-card border border-brand-border/50 rounded-lg p-3 space-y-2">
+              <button
+                onClick={() => setShowCustomerForm(!showCustomerForm)}
+                className="w-full text-left text-xs font-medium text-brand-orange hover:text-orange-400 flex items-center gap-1 justify-between"
+              >
+                <span>+ Customer Details (Optional)</span>
+                <span>{showCustomerForm ? '▼' : '▶'}</span>
+              </button>
+              {showCustomerForm && (
+                <div className="space-y-2 pt-2 border-t border-brand-border/30">
+                  <div>
+                    <label className="text-xs text-brand-muted block mb-0.5">Customer Name</label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={e => setCustomerName(e.target.value)}
+                      placeholder="e.g. Ravi Kumar"
+                      className="pos-input w-full text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-brand-muted block mb-0.5">Phone</label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={e => setCustomerPhone(e.target.value)}
+                      placeholder="9876543210"
+                      className="pos-input w-full text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-brand-muted block mb-0.5">Email</label>
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={e => setCustomerEmail(e.target.value)}
+                      placeholder="ravi@example.com"
+                      className="pos-input w-full text-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Method */}
