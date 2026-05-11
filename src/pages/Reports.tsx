@@ -41,6 +41,7 @@ interface StockItem {
   stock: number
   cost_a: number
   total_value: number
+  reorder_level: number
   stock_status: string
   sold_last_30_days: number
 }
