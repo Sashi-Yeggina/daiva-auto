@@ -188,7 +188,7 @@ export default function POS() {
       // Mechanic commission
       if (mechanicId && selectedMechanic) {
         // Use manual commission if entered, otherwise use default percentage
-        const commissionAmount = manualCommission > 0 ? manualCommission : grandTotal * (selectedMechanic.commission_percent / 100)
+        const commissionAmount = manualCommission > 0 ? manualCommission : subtotal * (selectedMechanic.commission_percent / 100)
         const commissionPercent = (commissionAmount / grandTotal) * 100
         await supabase.from('mechanic_ledger').insert({
           mechanic_id: mechanicId,

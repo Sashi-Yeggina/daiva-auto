@@ -16,6 +16,8 @@ export default function Inventory() {
   const [editItem, setEditItem] = useState<InventoryItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [bikeModels, setBikeModels] = useState<string[]>(BIKE_MODELS)
+  const [addStockItem, setAddStockItem] = useState<InventoryItem | null>(null)
+  const [addStockQty, setAddStockQty] = useState<number>(0)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
@@ -85,6 +87,20 @@ export default function Inventory() {
     if (error) { toast.error(error.message); return }
     toast.success('Part deleted')
     setDeleteId(null)
+    fetchItems()
+  }
+
+  const submitAddStock = async () => {
+    if (!addStockItem || addStockQty <= 0) {
+      toast.error('Enter valid quantity')
+      return
+    }
+    const newStock = addStockItem.stock + addStockQty
+    const { error } = await supabase.from('inventory').update({ stock: newStock, updated_at: new Date().toISOString() }).eq('item_id', addStockItem.item_id)
+    if (error) { toast.error(error.message); return }
+    toast.success(`Added ${addStockQty} to stock (new total: ${newStock})`)
+    setAddStockItem(null)
+    setAddStockQty(0)
     fetchItems()
   }
 
@@ -164,6 +180,7 @@ export default function Inventory() {
                   <td className="px-4 py-3">{stockBadge(item)}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      <button onClick={() => setAddStockItem(item)} className="text-xs px-2 py-1 bg-brand-orange/20 text-brand-orange hover:bg-brand-orange/30 rounded transition-colors" title="Add more stock">+</button>
                       <button onClick={() => openEdit(item)} className="text-brand-muted hover:text-brand-orange transition-colors"><Edit2 size={15} /></button>
                       <button onClick={() => setDeleteId(item.item_id)} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={15} /></button>
                     </div>
@@ -247,6 +264,42 @@ export default function Inventory() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Stock Modal */}
+      {addStockItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <div className="bg-brand-card border border-brand-border rounded-xl p-6 max-w-sm w-full">
+            <h3 className="font-semibold mb-1">Add Stock</h3>
+            <p className="text-brand-muted text-sm mb-4">{addStockItem.part_name} ({addStockItem.bike_model})</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-brand-muted block mb-1">Current Stock</label>
+                <p className="text-sm font-medium text-white">{addStockItem.stock} units</p>
+              </div>
+              <div>
+                <label className="text-xs text-brand-muted block mb-1">Quantity to Add *</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={addStockQty || ''}
+                  onChange={e => setAddStockQty(e.target.value ? Number(e.target.value) : 0)}
+                  placeholder="e.g., 5"
+                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-orange"
+                  autoFocus
+                />
+              </div>
+              <div className="bg-brand-bg border border-brand-border rounded-lg p-3">
+                <p className="text-xs text-brand-muted mb-1">New Total</p>
+                <p className="text-lg font-semibold text-brand-orange">{addStockItem.stock + (addStockQty || 0)} units</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => { setAddStockItem(null); setAddStockQty(0) }} className="flex-1 py-2 border border-brand-border rounded-lg text-sm hover:border-brand-orange transition-all">Cancel</button>
+              <button onClick={submitAddStock} className="flex-1 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-all">Add Stock</button>
+            </div>
           </div>
         </div>
       )}
